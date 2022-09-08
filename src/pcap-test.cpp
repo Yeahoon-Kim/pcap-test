@@ -98,9 +98,10 @@ int printPacket(const u_char* packet) {
     std::cout << "Total payload length : " << std::dec << data_size << '\n';
 
     for(int i = 0; i < data_size; i++) {
-        if(i >= 8) break;
+        if(i >= 10) break;
         
         std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)packet[total_header_size + i] << ' ';
+        if(i % 8 == 7) std::cout << '\n';
     }
 
     std::cout << "\n=================================================" << std::endl;
