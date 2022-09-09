@@ -2,37 +2,50 @@
 
 #define DEBUG
 
+/*
+ * Find ethernet header from packet and save several values
+*/
 void findEthHeader(struct libnet_ethernet_hdr& eth, const u_char* packet) {
     const int eth_header_size = sizeof(struct libnet_ethernet_hdr);
 
     memcpy(&eth, packet, eth_header_size);
-    eth.ether_type = ntohs(eth.ether_type);
+    eth.ether_type = ntohs(eth.ether_type); // uint16_t, have to translate from NBO to HBO
 
     return;
 }
 
+/*
+ * Find TCP header from the packet and save several values
+ * ** Warning : libnet_tcp_hdr does not save TCP header, but several values from the packet **
+ * ** This means that libnet_tcp_hdr's size can be different from the real TCP header size **
+*/
 void findTCPHeader(struct libnet_tcp_hdr& tcp, const u_char* packet) {
     const int tcp_header_size = sizeof(struct libnet_tcp_hdr);
 
     memcpy(&tcp, packet, tcp_header_size);
-    tcp.th_sport = ntohs(tcp.th_sport);
-    tcp.th_dport = ntohs(tcp.th_dport);
-    tcp.th_seq = ntohl(tcp.th_seq);
-    tcp.th_ack = ntohl(tcp.th_ack);
-    tcp.th_win = ntohs(tcp.th_win);
-    tcp.th_sum = ntohs(tcp.th_sum);
-    tcp.th_urp = ntohs(tcp.th_urp);
+    tcp.th_sport = ntohs(tcp.th_sport);     // uint16_t, have to translate from NBO to HBO
+    tcp.th_dport = ntohs(tcp.th_dport);     // uint16_t, have to translate from NBO to HBO
+    tcp.th_seq = ntohl(tcp.th_seq);         // uint32_t, have to translate from NBO to HBO
+    tcp.th_ack = ntohl(tcp.th_ack);         // uint32_t, have to translate from NBO to HBO
+    tcp.th_win = ntohs(tcp.th_win);         // uint16_t, have to translate from NBO to HBO
+    tcp.th_sum = ntohs(tcp.th_sum);         // uint16_t, have to translate from NBO to HBO
+    tcp.th_urp = ntohs(tcp.th_urp);         // uint16_t, have to translate from NBO to HBO
 
     return;
 }
 
+/*
+ * Find IP header from the packet and save several values
+ * ** Warning : libnet_tcp_hdr does not save IP header, but several values from the packet **
+ * ** This means that libnet_ip_hdr's size can be different from the real IP header size **
+*/
 void findIPHeader(struct libnet_ipv4_hdr& ipv4, const u_char* packet) {
     const int ip_header_size = sizeof(struct libnet_ipv4_hdr);
 
     memcpy(&ipv4, packet, ip_header_size);
-    ipv4.ip_len = ntohs(ipv4.ip_len);
-    ipv4.ip_id = ntohs(ipv4.ip_id);
-    ipv4.ip_sum = ntohs(ipv4.ip_sum);
+    ipv4.ip_len = ntohs(ipv4.ip_len);       // uint16_t, have to translate from NBO to HBO
+    ipv4.ip_id = ntohs(ipv4.ip_id);         // uint16_t, have to translate from NBO to HBO
+    ipv4.ip_sum = ntohs(ipv4.ip_sum);       // uint16_t, have to translate from NBO to HBO
 
     return;
 }
@@ -48,23 +61,32 @@ int printPacket(const u_char* packet) {
 
     std::stringstream srcMAC, destMAC;
 
-    // Find each header's size
+    // Find each header's size ---------------------------------------------------------------------
     eth_header_size = sizeof(struct libnet_ethernet_hdr);
     ip_header_size = (packet[eth_header_size] & 0x0f) << 2;                         // Word to Bytes
     tcp_header_size = (packet[eth_header_size + ip_header_size + 12] & 0xf0) >> 2;  // Word to Bytes
     total_header_size = eth_header_size + ip_header_size + tcp_header_size;
+    // ---------------------------------------------------------------------------------------------
 
+    // find headers from packet --------------------------------------------------------------------
+    // find ethernet header from packet
     findEthHeader(eth, packet);
     if(eth.ether_type != ETHERTYPE_IP) return FAILURE_NOT_IP;
 
+    // find IP header from packet
     findIPHeader(ipv4, packet + eth_header_size);
     if(ipv4.ip_p != IPTYPE_TCP) return FAILURE_NOT_TCP;
 
+    // find TCP header from packet
     findTCPHeader(tcp, packet + eth_header_size + ip_header_size);
     
+    // find payload size
     data_size = ipv4.ip_len - ip_header_size - tcp_header_size;
+    // ---------------------------------------------------------------------------------------------
 
-    // Print Packet
+
+    // Print Packet --------------------------------------------------------------------------------
+    // for decent code :)
     srcMAC << std::hex;
     srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[0] << ':';
     srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[1] << ':';
@@ -105,6 +127,7 @@ int printPacket(const u_char* packet) {
     }
 
     std::cout << "\n=================================================" << std::endl;
+    // ---------------------------------------------------------------------------------------------
 
     return SUCCESS;
 }

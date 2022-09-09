@@ -7,13 +7,13 @@ pcap_t* pcap;
 void InterruptHandler(const int signo) {
     if(signo == SIGINT) {
         cout << "Keyboard Interrupt" << endl;
-		pcap_close(pcap);
+		if(pcap != NULL) pcap_close(pcap);
 		exit(0);
     }
 }
 
 int main(int argc, char* argv[]) {
-	signal(SIGINT, InterruptHandler);
+	signal(SIGINT, InterruptHandler);	// signal handler
 
 	if (argc != 2) {
 		cerr << "Error: Wrong parameters are given\n";
