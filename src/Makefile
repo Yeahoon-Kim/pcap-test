@@ -13,7 +13,7 @@ main.o: ./pcap-test.hpp ./pcap-test.cpp ./main.cpp
 pcap-test.o: ./pcap-test.hpp ./pcap-test.cpp
 
 clean:
-	rm -f ../bin/$(TARGET)
+	rm -f $(TARGET)
 	rm -f *.o
 
 .PHONY: all clean
