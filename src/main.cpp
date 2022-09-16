@@ -1,4 +1,4 @@
-#include "pcap-test.h"
+#include "pcap-test.hpp"
 
 using namespace std;
 
