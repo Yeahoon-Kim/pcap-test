@@ -9,8 +9,8 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) -o $(@) $(OBJECTS) $(LIBS)
 
-main.o: ./pcap-test.h ./pcap-test.cpp ./main.cpp
-pcap-test.o: ./pcap-test.h ./pcap-test.cpp
+main.o: ./pcap-test.hpp ./pcap-test.cpp ./main.cpp
+pcap-test.o: ./pcap-test.hpp ./pcap-test.cpp
 
 clean:
 	rm -f ../bin/$(TARGET)
