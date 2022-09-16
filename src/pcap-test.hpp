@@ -8,7 +8,7 @@
 #include <iomanip>
 #include <pcap.h>
 #include <arpa/inet.h>
-#include "libnet.h"
+#include "libnet.hpp"
 
 #define FAILURE_NOT_TCP -1
 #define FAILURE_NOT_IP -2
