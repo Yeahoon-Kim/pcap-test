@@ -1,7 +1,5 @@
 #include "pcap-test.hpp"
 
-#define DEBUG
-
 /*
  * Find ethernet header from packet and save several values
 */

@@ -6,7 +6,7 @@ pcap_t* pcap;
 
 void InterruptHandler(const int signo) {
     if(signo == SIGINT) {
-        cout << "Keyboard Interrupt" << endl;
+        cout << "\nKeyboard Interrupt" << endl;
 		if(pcap != NULL) pcap_close(pcap);
 		exit(0);
     }
