@@ -49,7 +49,7 @@ void findIPHeader(struct libnet_ipv4_hdr& ipv4, const u_char* packet) {
 }
 
 /*
- * 
+ * extract MAC information from ethernet header to another pair of strings
 */
 std::pair<std::string, std::string> MACtos(struct libnet_ethernet_hdr& eth) {
     std::stringstream srcMAC, destMAC;
