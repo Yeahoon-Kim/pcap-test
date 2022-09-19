@@ -48,6 +48,32 @@ void findIPHeader(struct libnet_ipv4_hdr& ipv4, const u_char* packet) {
     return;
 }
 
+/*
+ * 
+*/
+std::pair<std::string, std::string> MACtos(struct libnet_ethernet_hdr& eth) {
+    std::stringstream srcMAC, destMAC;
+
+    // for decent code :)
+    srcMAC << std::hex;
+    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[0] << ':';
+    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[1] << ':';
+    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[2] << ':';
+    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[3] << ':';
+    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[4] << ':';
+    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[5];
+
+    destMAC << std::hex;
+    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[0] << ':';
+    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[1] << ':';
+    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[2] << ':';
+    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[3] << ':';
+    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[4] << ':';
+    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[5];
+
+    return std::make_pair(srcMAC.str(), destMAC.str());
+}
+
 int printPacket(const u_char* packet) {
     struct libnet_ethernet_hdr eth;
     struct libnet_tcp_hdr tcp;
@@ -57,7 +83,7 @@ int printPacket(const u_char* packet) {
     char MAC[STR_MAC_LEN] = { 0 };
     char payload[STR_PAYLOAD_LEN] = { 0 };
 
-    std::stringstream srcMAC, destMAC;
+    std::pair<std::string, std::string> MACStrPair;
 
     // Find each header's size ---------------------------------------------------------------------
     eth_header_size = sizeof(struct libnet_ethernet_hdr);
@@ -82,29 +108,13 @@ int printPacket(const u_char* packet) {
     data_size = ipv4.ip_len - ip_header_size - tcp_header_size;
     // ---------------------------------------------------------------------------------------------
 
-
     // Print Packet --------------------------------------------------------------------------------
-    // for decent code :)
-    srcMAC << std::hex;
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[0] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[1] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[2] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[3] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[4] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[5];
-
-    destMAC << std::hex;
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[0] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[1] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[2] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[3] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[4] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[5];
+    MACStrPair = MACtos(eth);
 
     std::cout << "================<Packet Captured>================\n";
     std::cout << "[[Ethernet Layer]]\n";
-    std::cout << "[Destination MAC] " << destMAC.str() << '\n';
-    std::cout << "[Source      MAC] " << srcMAC.str() << '\n';
+    std::cout << "[Destination MAC] " << MACStrPair.first << '\n';
+    std::cout << "[Source      MAC] " << MACStrPair.second << '\n';
 
     std::cout << "\n[[IP Layer]]\n";
     std::cout << "[Destination IP] " << inet_ntoa(ipv4.ip_dst) << '\n';
