@@ -1,5 +1,8 @@
 #include "pcap-test.hpp"
 
+#include <iostream>
+#include <csignal>
+
 using namespace std;
 
 pcap_t* pcap;

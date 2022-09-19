@@ -1,13 +1,12 @@
 #pragma once
 
-#include <iostream>
-#include <sstream>
-#include <csignal>
-#include <cstring>
-#include <string>
-#include <iomanip>
-#include <pcap.h>
-#include <arpa/inet.h>
+#include <iostream>     // cin, sout, hex, dec, ...
+#include <sstream>      // stringstream
+#include <cstring>      // memcpy
+#include <string>       // string
+#include <iomanip>      // setw, setfill
+#include <pcap.h>       // pcap_open_live, ...
+#include <arpa/inet.h>  // inet_ntoa
 #include "libnet.hpp"
 
 #define FAILURE_NOT_TCP -1
