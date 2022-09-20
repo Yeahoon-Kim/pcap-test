@@ -19,4 +19,6 @@ void findTCPHeader(struct libnet_tcp_hdr& tcp, const u_char* packet);
 
 void findIPHeader(struct libnet_ipv4_hdr& ipv4, const u_char* packet);
 
+std::pair<std::string, std::string> MACtos(struct libnet_ethernet_hdr& eth);
+
 int printPacket(const u_char* packet);
