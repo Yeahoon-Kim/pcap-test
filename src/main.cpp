@@ -46,6 +46,7 @@ int main(int argc, char* argv[]) {
 		res = pcap_next_ex(pcap, &header, &packet);
 
 		if (res == 0) continue;
+		// PCAP_ERROR : When interface is down
 		if (res == PCAP_ERROR or res == PCAP_ERROR_BREAK) {
 			cout << "Error : Error while pcap_next_ex: ";
 			cout << pcap_geterr(pcap) << endl;

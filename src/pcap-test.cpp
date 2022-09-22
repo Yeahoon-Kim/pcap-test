@@ -51,27 +51,19 @@ void findIPHeader(struct libnet_ipv4_hdr& ipv4, const u_char* packet) {
 /*
  * extract MAC information from ethernet header to another pair of strings
 */
-std::pair<std::string, std::string> MACtos(struct libnet_ethernet_hdr& eth) {
-    std::stringstream srcMAC, destMAC;
+std::string MACtos(const uint8_t* mac) {
+    std::stringstream MACstr;
 
     // for decent code :)
-    srcMAC << std::hex;
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[0] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[1] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[2] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[3] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[4] << ':';
-    srcMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_shost[5];
+    MACstr << std::hex;
+    MACstr << std::setw(2) << std::setfill('0') << (int)mac[0] << ':';
+    MACstr << std::setw(2) << std::setfill('0') << (int)mac[1] << ':';
+    MACstr << std::setw(2) << std::setfill('0') << (int)mac[2] << ':';
+    MACstr << std::setw(2) << std::setfill('0') << (int)mac[3] << ':';
+    MACstr << std::setw(2) << std::setfill('0') << (int)mac[4] << ':';
+    MACstr << std::setw(2) << std::setfill('0') << (int)mac[5];
 
-    destMAC << std::hex;
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[0] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[1] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[2] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[3] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[4] << ':';
-    destMAC << std::setw(2) << std::setfill('0') << (int)eth.ether_dhost[5];
-
-    return std::make_pair(srcMAC.str(), destMAC.str());
+    return MACstr.str();
 }
 
 int printPacket(const u_char* packet) {
@@ -85,38 +77,35 @@ int printPacket(const u_char* packet) {
 
     std::pair<std::string, std::string> MACStrPair;
 
-    // Find each header's size ---------------------------------------------------------------------
-    eth_header_size = sizeof(struct libnet_ethernet_hdr);
-    ip_header_size = (packet[eth_header_size] & 0x0f) << 2;                         // Word to Bytes
-    tcp_header_size = (packet[eth_header_size + ip_header_size + 12] & 0xf0) >> 2;  // Word to Bytes
-    total_header_size = eth_header_size + ip_header_size + tcp_header_size;
-    // ---------------------------------------------------------------------------------------------
-
     // find headers from packet --------------------------------------------------------------------
     // find ethernet header from packet
     findEthHeader(eth, packet);
     if(eth.ether_type != ETHERTYPE_IP) return FAILURE_NOT_IP;
+    eth_header_size = sizeof(struct libnet_ethernet_hdr);
 
     // find IP header from packet
     findIPHeader(ipv4, packet + eth_header_size);
     if(ipv4.ip_p != IPTYPE_TCP) return FAILURE_NOT_TCP;
+    ip_header_size = (ipv4.ip_tos & 0x0f) << 2;                                     // Word to Bytes
 
     // find TCP header from packet
     findTCPHeader(tcp, packet + eth_header_size + ip_header_size);
+    tcp_header_size = (packet[eth_header_size + ip_header_size + 12] & 0xf0) >> 2;  // Word to Bytes
     
     // find payload size
+    total_header_size = eth_header_size + ip_header_size + tcp_header_size;
     data_size = ipv4.ip_len - ip_header_size - tcp_header_size;
     // ---------------------------------------------------------------------------------------------
 
     // Print Packet --------------------------------------------------------------------------------
-    MACStrPair = MACtos(eth);
-
     std::cout << "================<Packet Captured>================\n";
     std::cout << "[[Ethernet Layer]]\n";
-    std::cout << "[Destination MAC] " << MACStrPair.first << '\n';
-    std::cout << "[Source      MAC] " << MACStrPair.second << '\n';
+    std::cout << "[Destination MAC] " << MACtos(eth.ether_dhost) << '\n';
+    std::cout << "[Source      MAC] " << MACtos(eth.ether_shost) << '\n';
 
     std::cout << "\n[[IP Layer]]\n";
+    // inet_ntoa have to print or deep copy immediately because inet_ntoa use static variable
+    // You can use inet_ntop instead of inet_ntoa
     std::cout << "[Destination IP] " << inet_ntoa(ipv4.ip_dst) << '\n';
     std::cout << "[Source      IP] " << inet_ntoa(ipv4.ip_src) << '\n';
 
@@ -127,9 +116,7 @@ int printPacket(const u_char* packet) {
     std::cout << "\n[Payload]\n";
     std::cout << "Total payload length : " << std::dec << data_size << '\n';
 
-    for(int i = 0; i < data_size; i++) {
-        if(i >= 10) break;
-        
+    for(int i = 0; i < std::min(data_size, 10); i++) {
         std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)packet[total_header_size + i] << ' ';
         if(i % 8 == 7) std::cout << '\n';
     }
